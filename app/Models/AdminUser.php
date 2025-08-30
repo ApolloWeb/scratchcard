@@ -10,6 +10,9 @@ class AdminUser extends Authenticatable
 {
     use HasUlids, Notifiable;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'name',
         'email',

@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUlid;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class GenerationBatch extends Model
 {
-    use HasFactory, HasUlid;
+    use HasFactory, HasUlids;
 
     public $incrementing = false;
     protected $keyType = 'string';

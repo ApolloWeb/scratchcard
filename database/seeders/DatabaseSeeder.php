@@ -11,11 +11,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // ...existing code...
         $this->call([
             AdminUserSeeder::class,
-            PrizeTiersSeeder::class,
         ]);
-        // ...existing code...
     }
 }
