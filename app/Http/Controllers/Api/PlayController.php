@@ -44,7 +44,7 @@ class PlayController extends Controller
         // Update scratch progress
         $updateData = [
             'scratch_pct' => max($playSession->scratch_pct, $scratchPct),
-            'status' => $scratchPct >= 75 ? 'REVEALED' : 'SCRATCHING',
+            'status' => $scratchPct >= 65 ? 'REVEALED' : 'SCRATCHING',
         ];
         
         // Set client seed if provided and not already set
@@ -53,7 +53,7 @@ class PlayController extends Controller
         }
         
         // If revealing, set revealed_at timestamp
-        if ($scratchPct >= 75) {
+        if ($scratchPct >= 65) {
             $updateData['revealed_at'] = now();
         }
         

@@ -8,13 +8,14 @@ use App\Services\CrockfordBase32;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
 class GenerateBatchJob implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public GenerationBatch $batch;
 
@@ -77,6 +78,7 @@ class GenerateBatchJob implements ShouldQueue
                         'payout_minor' => $payout_minor,
                         'server_seed_hash' => hash('sha256', bin2hex(random_bytes(16))),
                         'server_seed_encrypted' => '',
+                        'nonce' => $i + 1, // Use ticket index as nonce
                     ]);
 
                     $created++;
