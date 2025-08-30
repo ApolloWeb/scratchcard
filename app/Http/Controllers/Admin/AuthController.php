@@ -20,7 +20,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if(Auth::attempt($credentials, $request->boolean('remember'))){
+        if(Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))){
             $request->session()->regenerate();
             return redirect()->route('admin.index');
         }
@@ -30,7 +30,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('admin.login');
