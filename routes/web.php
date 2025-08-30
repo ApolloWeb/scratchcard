@@ -13,26 +13,3 @@ use App\Http\Controllers\Admin\GameSettingController;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::prefix('admin')->name('admin.')->group(function(){
-    Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('login', [AuthController::class, 'login'])->name('login.post');
-    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
-
-    Route::middleware('auth:admin')->group(function(){
-        Route::get('/', function(){ return view('admin.index'); })->name('index');
-
-        Route::apiResource('prize-tiers', PrizeTierController::class)->parameters(['prize-tiers' => 'prizeTier']);
-        Route::apiResource('generation-batches', GenerationBatchController::class)->parameters(['generation-batches' => 'generationBatch']);
-        Route::get('generation-batches/{generationBatch}/progress', [GenerationBatchController::class, 'progress'])->name('generation-batches.progress');
-
-        Route::get('play-sessions', [PlaySessionController::class, 'index'])->name('play-sessions.index');
-        Route::get('play-sessions/{playSession}', [PlaySessionController::class, 'show'])->name('play-sessions.show');
-        Route::patch('play-sessions/{playSession}', [PlaySessionController::class, 'update'])->name('play-sessions.update');
-
-        // SPA fallback for admin frontend (must come after API routes)
-        Route::get('{any}', function(){ return view('admin.index'); })->where('any', '.*');
-    });
-});
-
-
