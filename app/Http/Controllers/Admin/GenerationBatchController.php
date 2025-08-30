@@ -15,7 +15,7 @@ class GenerationBatchController extends Controller
 
     public function index()
     {
-        return GenerationBatch::with('campaign')->paginate(20);
+        return GenerationBatch::paginate(20);
     }
 
     public function show(GenerationBatch $generationBatch)
@@ -26,10 +26,9 @@ class GenerationBatchController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'campaign_id' => 'required|string|exists:campaigns,id',
             'name' => 'required|string|max:255',
             'count' => 'nullable|integer',
-            'decide_at' => 'nullable|date',
+            'decide_at' => 'nullable|in:generation,reveal',
             'settings_snapshot' => 'nullable|array',
             'generated_by' => 'nullable|string',
             'expires_at' => 'nullable|date',
@@ -45,7 +44,7 @@ class GenerationBatchController extends Controller
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
             'count' => 'nullable|integer',
-            'decide_at' => 'nullable|date',
+            'decide_at' => 'nullable|in:generation,reveal',
             'settings_snapshot' => 'nullable|array',
             'expires_at' => 'nullable|date',
         ]);

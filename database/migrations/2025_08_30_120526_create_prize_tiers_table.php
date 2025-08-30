@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('prize_tiers', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->ulid('campaign_id');
             $table->string('label');
             $table->text('description')->nullable();
             $table->unsignedInteger('amount_minor');
@@ -23,9 +22,6 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
-            
-            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('cascade');
-            $table->index(['campaign_id', 'is_active', 'sort_order']);
         });
     }
 

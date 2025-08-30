@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GenerationBatch extends Model
 {
@@ -16,7 +15,6 @@ class GenerationBatch extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'campaign_id',
         'name',
         'count',
         'decide_at',
@@ -38,10 +36,5 @@ class GenerationBatch extends Model
                 $model->{$model->getKeyName()} = (string) Str::ulid();
             }
         });
-    }
-
-    public function campaign(): BelongsTo
-    {
-        return $this->belongsTo(Campaign::class);
     }
 }

@@ -15,7 +15,7 @@ class GameSettingController extends Controller
 
     public function index()
     {
-        return GameSetting::with('campaign')->paginate(20);
+        return GameSetting::paginate(20);
     }
 
     public function show(GameSetting $gameSetting)
@@ -26,7 +26,6 @@ class GameSettingController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'campaign_id' => 'required|string|exists:campaigns,id',
             'win_numerator' => 'required|integer',
             'win_denominator' => 'required|integer',
             'reveal_threshold' => 'required|integer',

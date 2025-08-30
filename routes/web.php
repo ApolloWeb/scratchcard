@@ -9,6 +9,15 @@ use App\Http\Controllers\Admin\GenerationBatchController;
 use App\Http\Controllers\Admin\PlaySessionController;
 use App\Http\Controllers\Admin\GameSettingController;
 
+// Provide fallback login/register routes so welcome view's route('login') / route('register') calls don't fail
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
+
+Route::get('/register', function () {
+    return redirect()->route('admin.login');
+})->name('register');
+
 Route::get('/', function () {
     return view('welcome');
 });

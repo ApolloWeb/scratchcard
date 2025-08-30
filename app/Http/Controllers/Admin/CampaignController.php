@@ -3,67 +3,35 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Campaign;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CampaignController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:admin');
-    }
+    // campaigns removed; keep controller to avoid route errors
 
     public function index()
     {
-        return Campaign::withCount(['prizeTiers', 'generationBatches', 'playSessions'])->paginate(20);
+        return response()->json(['message' => 'Campaigns removed'], Response::HTTP_NOT_FOUND);
     }
 
-    public function show(Campaign $campaign)
+    public function show($id)
     {
-        return $campaign->load('prizeTiers', 'generationBatches', 'gameSetting');
+        return response()->json(['message' => 'Campaigns removed'], Response::HTTP_NOT_FOUND);
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date',
-            'max_plays' => 'nullable|integer',
-            'is_active' => 'sometimes|boolean',
-            'theme_config' => 'nullable|array',
-            'locale' => 'nullable|string',
-            'created_by' => 'nullable|string',
-        ]);
-
-        $campaign = Campaign::create($data);
-
-        return response($campaign, 201);
+        return response()->json(['message' => 'Campaigns removed'], Response::HTTP_NOT_FOUND);
     }
 
-    public function update(Request $request, Campaign $campaign)
+    public function update(Request $request, $id)
     {
-        $data = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date',
-            'max_plays' => 'nullable|integer',
-            'is_active' => 'sometimes|boolean',
-            'theme_config' => 'nullable|array',
-            'locale' => 'nullable|string',
-        ]);
-
-        $campaign->update($data);
-
-        return $campaign;
+        return response()->json(['message' => 'Campaigns removed'], Response::HTTP_NOT_FOUND);
     }
 
-    public function destroy(Campaign $campaign)
+    public function destroy($id)
     {
-        $campaign->delete();
-
-        return response(null, 204);
+        return response()->json(['message' => 'Campaigns removed'], Response::HTTP_NOT_FOUND);
     }
 }

@@ -12,11 +12,19 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        AdminUser::factory()->superAdmin()->create([
-            'email' => 'admin@example.com',
-            'name' => 'Super Admin',
-        ]);
+        AdminUser::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => 'password',
+                'role' => 'super_admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
-        AdminUser::factory()->count(3)->create();
+        if (AdminUser::count() < 4) {
+            AdminUser::factory()->count(3)->create();
+        }
     }
 }

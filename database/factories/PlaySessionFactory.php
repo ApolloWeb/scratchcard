@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\PlaySession;
-use App\Models\Campaign;
 use App\Models\GenerationBatch;
 use App\Models\PrizeTier;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -15,15 +14,16 @@ class PlaySessionFactory extends Factory
 
     public function definition()
     {
+        $batch = GenerationBatch::inRandomOrder()->first() ?? GenerationBatch::factory()->create();
+
         return [
             'id' => (string) Str::ulid(),
-            'campaign_id' => Campaign::factory(),
-            'batch_id' => GenerationBatch::factory(),
+            'batch_id' => $batch->id,
             'code' => strtoupper($this->faker->bothify('???-####')),
-            'masked_token' => Str::random(32),
-            'status' => 'pending',
-            'outcome' => null,
-            'prize_tier_id' => null,
+            'masked_token' => (string) Str::uuid(),
+            'status' => $this->faker->randomElement(['NEW', 'SCRATCHING', 'REVEALED', 'EXPIRED']),
+            'outcome' => $this->faker->optional()->randomElement(['WIN', 'LOSE']),
+            'prize_tier_id' => PrizeTier::inRandomOrder()->first()?->id,
             'payout_minor' => 0,
             'scratch_pct' => 0,
             'scratch_duration' => 0,

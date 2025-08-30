@@ -15,7 +15,7 @@ class PrizeTierController extends Controller
 
     public function index()
     {
-        return PrizeTier::with('campaign')->paginate(20);
+        return PrizeTier::paginate(20);
     }
 
     public function show(PrizeTier $prizeTier)
@@ -26,7 +26,6 @@ class PrizeTierController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'campaign_id' => 'required|string|exists:campaigns,id',
             'label' => 'required|string|max:255',
             'description' => 'nullable|string',
             'amount_minor' => 'nullable|integer',

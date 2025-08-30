@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\PlaySession;
-use App\Models\Campaign;
 use App\Models\GenerationBatch;
 use Illuminate\Database\Seeder;
 
@@ -17,7 +16,7 @@ class PlaySessionSeeder extends Seeder
         }
 
         foreach ($batches as $batch) {
-            PlaySession::factory()->count(10)->create(['batch_id' => $batch->id, 'campaign_id' => $batch->campaign_id]);
+            PlaySession::factory()->count(10)->create(['batch_id' => $batch->id]);
         }
     }
 }

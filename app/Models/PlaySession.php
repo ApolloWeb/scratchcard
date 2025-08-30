@@ -16,7 +16,6 @@ class PlaySession extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'campaign_id',
         'batch_id',
         'code',
         'masked_token',
@@ -56,11 +55,6 @@ class PlaySession extends Model
                 $model->{$model->getKeyName()} = (string) Str::ulid();
             }
         });
-    }
-
-    public function campaign(): BelongsTo
-    {
-        return $this->belongsTo(Campaign::class);
     }
 
     public function batch(): BelongsTo

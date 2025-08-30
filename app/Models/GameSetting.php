@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GameSetting extends Model
 {
@@ -16,7 +15,6 @@ class GameSetting extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'campaign_id',
         'win_numerator',
         'win_denominator',
         'reveal_threshold',
@@ -39,10 +37,5 @@ class GameSetting extends Model
                 $model->{$model->getKeyName()} = (string) Str::ulid();
             }
         });
-    }
-
-    public function campaign(): BelongsTo
-    {
-        return $this->belongsTo(Campaign::class);
     }
 }

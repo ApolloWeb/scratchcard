@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('play_sessions', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->ulid('campaign_id');
             $table->ulid('batch_id')->nullable();
             $table->string('code')->unique();
             $table->uuid('masked_token');
@@ -34,12 +33,10 @@ return new class extends Migration
             $table->string('referrer')->nullable();
             $table->json('session_data')->nullable();
             $table->timestamps();
-            
-            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('cascade');
+
             $table->foreign('batch_id')->references('id')->on('generation_batches')->onDelete('set null');
             $table->foreign('prize_tier_id')->references('id')->on('prize_tiers')->onDelete('set null');
-            
-            $table->index(['campaign_id', 'status']);
+
             $table->index(['code']);
             $table->index(['masked_token']);
             $table->index(['created_at', 'status']);
