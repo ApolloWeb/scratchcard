@@ -1,3 +1,105 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
 
 /* Application CSS */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom variables */
+:root {
+  --bs-border-radius: 0.375rem;
+  --bs-border-radius-sm: 0.25rem;
+  --bs-border-radius-lg: 0.5rem;
+}
+
+/* Card enhancements */
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Button enhancements */
+.btn {
+  border-radius: var(--bs-border-radius);
+  font-weight: 500;
+}
+
+.btn-sm {
+  border-radius: var(--bs-border-radius-sm);
+}
+
+.btn-lg {
+  border-radius: var(--bs-border-radius-lg);
+}
+
+/* Form enhancements */
+.form-control,
+.form-select {
+  border-radius: var(--bs-border-radius);
+}
+
+/* Table enhancements */
+.table th {
+  font-weight: 600;
+  color: var(--bs-gray-700);
+}
+
+/* Badge enhancements */
+.badge {
+  font-weight: 500;
+}
+
+/* Progress bar enhancements */
+.progress {
+  border-radius: var(--bs-border-radius);
+}
+
+/* Navbar enhancements */
+.navbar-brand {
+  font-weight: 600;
+}
+
+/* Utility classes */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Loading states */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Custom animations */
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Responsive table improvements */
+@media (max-width: 768px) {
+  .table-responsive table {
+    font-size: 0.875rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
