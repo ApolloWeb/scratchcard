@@ -66,17 +66,23 @@ class PlayController extends Controller
         $response = [
             'status' => $playSession->status,
             'scratch_pct' => $playSession->scratch_pct,
+            'play_id' => $playSession->id,
+            'id' => $playSession->id,  // Also include id for consistency
+            'box_symbols' => $playSession->box_symbols,
+            'winning_symbol' => $playSession->winning_symbol,
         ];
         
         // Include outcome and prize if revealed
         if ($playSession->status === 'REVEALED') {
             $response['outcome'] = $playSession->outcome;
+            $response['revealed_at'] = $playSession->revealed_at;
             
             if ($playSession->outcome === 'WIN') {
                 $response['prize'] = [
                     'label' => $playSession->prizeTier?->label,
                     'amount_minor' => $playSession->payout_minor,
                 ];
+                $response['payout_minor'] = $playSession->payout_minor;
             }
         }
         

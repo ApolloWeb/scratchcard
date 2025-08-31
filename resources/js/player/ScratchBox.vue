@@ -9,6 +9,7 @@
       @touchmove.prevent="scratchMove"
       @touchend.prevent="end"
     ></canvas>
+    <div ref="confetti" class="confetti-container" aria-hidden="true"></div>
     <div class="scratch-cursor" :style="cursorStyle" v-show="showCursor"></div>
   </div>
 </template>
@@ -36,6 +37,8 @@ export default {
     const showCursor = ref(false);
     const cursorX = ref(0);
     const cursorY = ref(0);
+    const confetti = ref(null);
+    let timers = [];
 
     function bounds() {
       const el = canvas.value;
@@ -55,17 +58,19 @@ export default {
       if (!ctx.value || !canvas.value) return;
       const c = canvas.value;
       ctx.value.clearRect(0, 0, c.width, c.height);
+      // Use fully opaque colors so underlying content does not bleed through
       ctx.value.fillStyle = '#bdbdbd';
       ctx.value.fillRect(0,0,c.width,c.height);
       const g = ctx.value.createLinearGradient(0,0,c.width,c.height);
-      g.addColorStop(0, 'rgba(220,220,220,0.95)');
-      g.addColorStop(1, 'rgba(180,180,180,0.95)');
+      g.addColorStop(0, 'rgba(220,220,220,1)');
+      g.addColorStop(1, 'rgba(180,180,180,1)');
       ctx.value.fillStyle = g;
       ctx.value.fillRect(0,0,c.width,c.height);
-      ctx.value.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.value.fillStyle = 'rgba(255,255,255,0.95)';
       ctx.value.font = '700 14px system-ui, Arial';
       ctx.value.textAlign = 'center';
       ctx.value.fillText('SCRATCH', c.width/2, c.height/2 + 6);
+      // Switch to destination-out so future draws will erase the overlay (create transparency)
       ctx.value.globalCompositeOperation = 'destination-out';
     }
 
@@ -81,6 +86,8 @@ export default {
       isDown.value = true;
       showCursor.value = true;
       drawAtEvent(e);
+      // Ensure we schedule a check immediately so UI updates progress on first stroke
+      throttledCheck();
     }
 
     function scratchMove(e) {
@@ -139,6 +146,22 @@ export default {
     function reveal() {
       // hide canvas to show symbol
       if (canvas.value) canvas.value.style.display = 'none';
+      // confetti
+      if (confetti.value) {
+        const colors = ['#FFD700','#FF4D4F','#4ADE80','#60A5FA','#A78BFA'];
+        for (let i = 0; i < 18; i++) {
+          const d = document.createElement('div');
+          d.className = 'confetti-piece';
+          d.style.width = Math.floor(Math.random()*10)+6+'px';
+          d.style.height = Math.floor(Math.random()*8)+6+'px';
+          d.style.background = colors[Math.floor(Math.random()*colors.length)];
+          d.style.left = Math.floor(Math.random()*80)+10+'%';
+          const delay = Math.random()*300;
+          d.style.animationDelay = delay+'ms';
+          confetti.value.appendChild(d);
+          timers.push(setTimeout(()=>d.remove(), 2200+delay));
+        }
+      }
     }
 
     function onMove(e) { moveCursor(e); }
@@ -147,17 +170,25 @@ export default {
     onMounted(() => {
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
+      // bind confetti ref from this component DOM
+      if (canvas.value && canvas.value.parentElement) {
+        confetti.value = canvas.value.parentElement.querySelector('.confetti-container');
+      }
+      // Emit initial progress so parent sees starting value
+      checkScratchPct();
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener('resize', resizeCanvas);
+      timers.forEach(t => clearTimeout(t));
+      timers = [];
     });
 
     watch(() => props.revealed, (v) => {
       if (v) { localRevealed.value = true; if (canvas.value) canvas.value.style.display = 'none'; }
     });
 
-    return { canvas, showCursor, cursorStyle: computed(() => ({ left: cursorX.value+'px', top: cursorY.value+'px', transform: 'translate(-50%, -50%)' })), onMove, onLeave, start, scratchMove, end };
+    return { canvas, confetti, showCursor, cursorStyle: computed(() => ({ left: cursorX.value+'px', top: cursorY.value+'px', transform: 'translate(-50%, -50%)' })), onMove, onLeave, start, scratchMove, end };
   }
 }
 </script>
@@ -167,5 +198,8 @@ export default {
 .scratch-canvas{position:relative;display:block;width:100%;height:100%}
 .box-revealed{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .symbol{font-size:24px;font-weight:bold}
+.confetti-container{position:absolute;inset:0;pointer-events:none}
+.confetti-piece{position:absolute;top:0;opacity:0.95;animation:confetti-fall 2.4s linear forwards}
+@keyframes confetti-fall{to{transform:translateY(240px) rotate(360deg);opacity:0}}
 .scratch-cursor{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.85);border:2px solid rgba(0,0,0,0.12);pointer-events:none}
 </style>

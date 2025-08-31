@@ -27,6 +27,7 @@ class TicketController extends Controller
         return response()->json([
             'play_session' => [
                 'play_id' => $playSession->id,
+                'id' => $playSession->id,  // Also include id for consistency
                 'status' => $playSession->status,
                 'scratch_pct' => $playSession->scratch_pct,
                 'box_symbols' => $playSession->box_symbols, // Already decoded by Laravel cast
