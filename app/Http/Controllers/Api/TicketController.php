@@ -25,13 +25,17 @@ class TicketController extends Controller
         }
         
         return response()->json([
-            'play_id' => $playSession->ulid,
-            'status' => $playSession->status,
-            'scratch_pct' => $playSession->scratch_pct,
-            'box_symbols' => $playSession->box_symbols ? json_decode($playSession->box_symbols, true) : null,
-            'winning_symbol' => $playSession->winning_symbol,
-            'expires_at' => $playSession->expires_at,
-            'outcome' => $playSession->status === 'REVEALED' ? $playSession->outcome : null,
+            'play_session' => [
+                'play_id' => $playSession->id,
+                'status' => $playSession->status,
+                'scratch_pct' => $playSession->scratch_pct,
+                'box_symbols' => $playSession->box_symbols, // Already decoded by Laravel cast
+                'winning_symbol' => $playSession->winning_symbol,
+                'expires_at' => $playSession->expires_at,
+                'outcome' => $playSession->status === 'REVEALED' ? $playSession->outcome : null,
+                'revealed_at' => $playSession->revealed_at,
+                'payout_minor' => $playSession->payout_minor, // Include payout for winning tickets
+            ],
             'prize' => $playSession->status === 'REVEALED' && $playSession->outcome === 'WIN' ? [
                 'label' => $playSession->prizeTier?->label,
                 'amount_minor' => $playSession->payout_minor,

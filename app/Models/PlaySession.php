@@ -30,11 +30,18 @@ class PlaySession extends Model
         'nonce',
         'ip',
         'ua',
+        'box_symbols',
+        'box_scratch_pct',
+        'boxes_revealed',
+        'winning_symbol',
     ];
 
     protected $casts = [
         'revealed_at' => 'datetime',
         'expires_at' => 'datetime',
+        'box_symbols' => 'array',
+        'box_scratch_pct' => 'array',
+        'boxes_revealed' => 'integer',
     ];
 
     public function batch()

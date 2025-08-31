@@ -58,9 +58,6 @@ class GenerateBatchJob implements ShouldQueue
                     $box_symbols = [];
                     $winning_symbol = null;
 
-                    // Available symbols for scratch boxes
-                    $symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '🍀', '🎁'];
-
                     if ($is_win === 'WIN' && $total_weight > 0) {
                         $r = rand(1, $total_weight);
                         $acc = 0;
@@ -73,29 +70,40 @@ class GenerateBatchJob implements ShouldQueue
                             }
                         }
 
-                        // For winning tickets, all 3 boxes have the same symbol
-                        $winning_symbol = $symbols[array_rand($symbols)];
+                        // For winning tickets, all 3 boxes show the prize amount
+                        $winning_symbol = '£' . number_format($payout_minor / 100, 0);
                         $box_symbols = [$winning_symbol, $winning_symbol, $winning_symbol];
                     } else {
-                        // For losing tickets, ensure no 3 matching symbols
-                        // Pick 3 different symbols or ensure at least one is different
+                        // For losing tickets, show random amounts from prize tiers
+                        // Pick different amounts to ensure no 3 matching
+                        $amounts = [];
+                        foreach ($tiers as $tier) {
+                            $amounts[] = '£' . number_format($tier['amount_minor'] / 100, 0);
+                        }
+                        
+                        // Shuffle and take first 3, or repeat if we have fewer than 3 tiers
+                        shuffle($amounts);
+                        if (count($amounts) < 3) {
+                            // If fewer than 3 tiers, add some defaults
+                            $amounts = array_merge($amounts, ['£1', '£5', '£10', '£50']);
+                            shuffle($amounts);
+                        }
+                        
                         $box_symbols = [
-                            $symbols[array_rand($symbols)],
-                            $symbols[array_rand($symbols)],
-                            $symbols[array_rand($symbols)]
+                            $amounts[0],
+                            $amounts[1] ?? $amounts[0],
+                            $amounts[2] ?? $amounts[0]
                         ];
                         
-                        // If all 3 are the same, change one to make it a losing ticket
+                        // Ensure not all 3 are the same (make it a definite loss)
                         if ($box_symbols[0] === $box_symbols[1] && $box_symbols[1] === $box_symbols[2]) {
-                            // Find a different symbol
-                            $differentSymbol = $symbols[0];
-                            foreach ($symbols as $sym) {
-                                if ($sym !== $box_symbols[0]) {
-                                    $differentSymbol = $sym;
-                                    break;
-                                }
+                            // Change one to a different amount
+                            $differentAmounts = array_diff($amounts, [$box_symbols[0]]);
+                            if (!empty($differentAmounts)) {
+                                $box_symbols[2] = reset($differentAmounts);
+                            } else {
+                                $box_symbols[2] = '£1'; // fallback
                             }
-                            $box_symbols[2] = $differentSymbol;
                         }
                     }
 

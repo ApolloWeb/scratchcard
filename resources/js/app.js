@@ -14,8 +14,10 @@ if (document.getElementById('admin-app')) {
 } else if (document.getElementById('app')) {
   // Player app
   import('./player/TicketPlayer.vue').then(({ default: TicketPlayer }) => {
+    const el = document.getElementById('app');
+    const code = el?.dataset?.code || window.ticketCode || '';
     const app = createApp(TicketPlayer, {
-      code: window.ticketCode || ''
+      code
     });
     app.mount('#app');
   });
