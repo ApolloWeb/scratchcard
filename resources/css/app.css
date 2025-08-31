@@ -1,5 +1,11 @@
+/* Import Bootstrap for admin panel compatibility */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* Import Tailwind CSS for modern styling */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Application CSS */
 body {

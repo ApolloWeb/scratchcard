@@ -55,6 +55,11 @@ class GenerateBatchJob implements ShouldQueue
 
                     $prize_tier_id = null;
                     $payout_minor = 0;
+                    $box_symbols = [];
+                    $winning_symbol = null;
+
+                    // Available symbols for scratch boxes
+                    $symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '🍀', '🎁'];
 
                     if ($is_win === 'WIN' && $total_weight > 0) {
                         $r = rand(1, $total_weight);
@@ -67,6 +72,31 @@ class GenerateBatchJob implements ShouldQueue
                                 break;
                             }
                         }
+
+                        // For winning tickets, all 3 boxes have the same symbol
+                        $winning_symbol = $symbols[array_rand($symbols)];
+                        $box_symbols = [$winning_symbol, $winning_symbol, $winning_symbol];
+                    } else {
+                        // For losing tickets, ensure no 3 matching symbols
+                        // Pick 3 different symbols or ensure at least one is different
+                        $box_symbols = [
+                            $symbols[array_rand($symbols)],
+                            $symbols[array_rand($symbols)],
+                            $symbols[array_rand($symbols)]
+                        ];
+                        
+                        // If all 3 are the same, change one to make it a losing ticket
+                        if ($box_symbols[0] === $box_symbols[1] && $box_symbols[1] === $box_symbols[2]) {
+                            // Find a different symbol
+                            $differentSymbol = $symbols[0];
+                            foreach ($symbols as $sym) {
+                                if ($sym !== $box_symbols[0]) {
+                                    $differentSymbol = $sym;
+                                    break;
+                                }
+                            }
+                            $box_symbols[2] = $differentSymbol;
+                        }
                     }
 
                     PlaySession::create([
@@ -76,6 +106,8 @@ class GenerateBatchJob implements ShouldQueue
                         'outcome' => $is_win,
                         'prize_tier_id' => $prize_tier_id,
                         'payout_minor' => $payout_minor,
+                        'box_symbols' => json_encode($box_symbols),
+                        'winning_symbol' => $winning_symbol,
                         'server_seed_hash' => hash('sha256', bin2hex(random_bytes(16))),
                         'server_seed_encrypted' => '',
                         'nonce' => $i + 1, // Use ticket index as nonce
