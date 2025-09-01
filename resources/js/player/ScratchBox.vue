@@ -1,7 +1,10 @@
 <template>
   <div class="scratch-box" @mousemove="onMove" @mouseleave="onLeave">
-    <div v-if="revealed" class="box-revealed"><div class="symbol">{{ symbol }}</div></div>
+    <!-- content always rendered under the scratch surface so it is revealed as the user clears the overlay -->
+    <div class="box-content"><div class="symbol">{{ symbol }}</div></div>
+
     <canvas ref="canvas" class="scratch-canvas"
+      v-show="!revealed"
       @mousedown.prevent="start"
       @mousemove.prevent="scratchMove"
       @mouseup.prevent="end"
@@ -9,7 +12,7 @@
       @touchmove.prevent="scratchMove"
       @touchend.prevent="end"
     ></canvas>
-    <div ref="confetti" class="confetti-container" aria-hidden="true"></div>
+
     <div class="scratch-cursor" :style="cursorStyle" v-show="showCursor"></div>
   </div>
 </template>
@@ -37,7 +40,6 @@ export default {
     const showCursor = ref(false);
     const cursorX = ref(0);
     const cursorY = ref(0);
-    const confetti = ref(null);
     let timers = [];
 
     function bounds() {
@@ -146,22 +148,6 @@ export default {
     function reveal() {
       // hide canvas to show symbol
       if (canvas.value) canvas.value.style.display = 'none';
-      // confetti
-      if (confetti.value) {
-        const colors = ['#FFD700','#FF4D4F','#4ADE80','#60A5FA','#A78BFA'];
-        for (let i = 0; i < 18; i++) {
-          const d = document.createElement('div');
-          d.className = 'confetti-piece';
-          d.style.width = Math.floor(Math.random()*10)+6+'px';
-          d.style.height = Math.floor(Math.random()*8)+6+'px';
-          d.style.background = colors[Math.floor(Math.random()*colors.length)];
-          d.style.left = Math.floor(Math.random()*80)+10+'%';
-          const delay = Math.random()*300;
-          d.style.animationDelay = delay+'ms';
-          confetti.value.appendChild(d);
-          timers.push(setTimeout(()=>d.remove(), 2200+delay));
-        }
-      }
     }
 
     function onMove(e) { moveCursor(e); }
@@ -170,10 +156,6 @@ export default {
     onMounted(() => {
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
-      // bind confetti ref from this component DOM
-      if (canvas.value && canvas.value.parentElement) {
-        confetti.value = canvas.value.parentElement.querySelector('.confetti-container');
-      }
       // Emit initial progress so parent sees starting value
       checkScratchPct();
     });
@@ -188,18 +170,18 @@ export default {
       if (v) { localRevealed.value = true; if (canvas.value) canvas.value.style.display = 'none'; }
     });
 
-    return { canvas, confetti, showCursor, cursorStyle: computed(() => ({ left: cursorX.value+'px', top: cursorY.value+'px', transform: 'translate(-50%, -50%)' })), onMove, onLeave, start, scratchMove, end };
+    return { canvas, showCursor, cursorStyle: computed(() => ({ left: cursorX.value+'px', top: cursorY.value+'px', transform: 'translate(-50%, -50%)' })), onMove, onLeave, start, scratchMove, end };
   }
 }
 </script>
 
 <style scoped>
-.scratch-box{position:relative;min-width:160px;min-height:80px}
-.scratch-canvas{position:relative;display:block;width:100%;height:100%}
-.box-revealed{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.scratch-box{position:relative;min-width:160px;min-height:80px;box-sizing:border-box}
+/* Canvas is an absolute overlay that covers the whole box and will be cleared by the scratching logic in script */
+.scratch-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:2}
+/* The content sits underneath the canvas so it becomes visible as the overlay is removed */
+.box-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;padding:8px}
 .symbol{font-size:24px;font-weight:bold}
-.confetti-container{position:absolute;inset:0;pointer-events:none}
-.confetti-piece{position:absolute;top:0;opacity:0.95;animation:confetti-fall 2.4s linear forwards}
-@keyframes confetti-fall{to{transform:translateY(240px) rotate(360deg);opacity:0}}
-.scratch-cursor{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.85);border:2px solid rgba(0,0,0,0.12);pointer-events:none}
+/* Cursor and interactions sit on top */
+.scratch-cursor{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.85);border:2px solid rgba(0,0,0,0.2);z-index:3;pointer-events:none;transform:translate(-50%,-50%)}
 </style>

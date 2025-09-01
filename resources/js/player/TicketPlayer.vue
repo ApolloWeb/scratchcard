@@ -1,7 +1,7 @@
 <template>
   <div class="player-root">
     <div class="game-container">
-      <ScratchCard v-if="!error && ticket && playSession" :ticket="playSession" :play-session="playSession" @scratch-progress="onScratchProgress" @reveal="onReveal" @new-game="newGame" />
+      <ScratchCard v-if="!error && ticket && playSession" :ticket="ticket" :play-session="playSession" @scratch-progress="onScratchProgress" @reveal="onReveal" @new-game="newGame" />
 
       <div v-else-if="loading" class="loading-plate">
         <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
@@ -38,6 +38,7 @@ export default {
       try {
         const data = await Api.getTicket(props.code);
         console.log('Loaded ticket data:', data);
+        // API returns top-level ticket information and a `play_session` object
         ticket.value = data;
         playSession.value = data.play_session || null;
         console.log('Play session:', playSession.value);
@@ -49,71 +50,69 @@ export default {
       }
     }
 
+    // load immediately on mount
+    onMounted(() => {
+      load();
+    });
+
     async function onScratchProgress(pct){
       if (!playSession.value || playSession.value.revealed_at) return;
-      
+
       console.log('Scratch progress:', pct, 'Play session play_id:', playSession.value.play_id);
-      
+
       // Check if we have a valid play_id
       if (!playSession.value.play_id) {
         console.error('No play_id found in play session:', playSession.value);
         return;
       }
-      
+
       // Update scratch progress on server
       try {
         const updated = await Api.updateScratchProgress(playSession.value.play_id, { 
           scratch_pct: Math.round(pct),
           client_seed: Date.now().toString() // Simple client seed
         });
-        
-        if (updated) {
-          // Update the play session with new data from server
-          playSession.value = {
-            ...playSession.value,
-            ...updated,
-            // Ensure we keep the box_symbols if they come from server
-            box_symbols: updated.box_symbols || playSession.value.box_symbols
-          };
+        console.log('Scratch update response', updated);
+
+        // If API returned a wrapped play_session (TicketController style)
+        if (updated.play_session) {
+          playSession.value = updated.play_session;
+          // ticket payload might include prize info at top-level depending on endpoint
+          ticket.value = updated || ticket.value;
+        } else {
+          // PlayController scratch response may return flat fields - merge into existing playSession
+          playSession.value = Object.assign({}, playSession.value, updated);
         }
-        
-        // Trigger full ticket reveal when overall progress reaches 65%
-        if (Math.round(pct) >= 65 && !playSession.value.revealed_at) {
-          try {
-            const verified = await Api.verifyResult(playSession.value.play_id);
-            if (verified) {
-              playSession.value = {
-                ...playSession.value, 
-                ...verified,
-                status: 'REVEALED',
-                revealed_at: new Date().toISOString()
-              };
-            }
-          } catch (e) { 
-            console.error('Error verifying result:', e); 
-          }
-        }
-      } catch (e) { 
-        console.error('Error updating scratch progress:', e); 
+      } catch (e) {
+        console.error('Failed to update scratch progress', e);
       }
     }
 
-    async function onReveal(payload){
-      // Individual box revealed - don't trigger full ticket reveal yet
-      // The full ticket reveal should be triggered by overall progress, not individual box reveals
-      console.log(`Box ${payload.boxIndex} revealed at ${payload.scratchPct}%`);
+    function onReveal(payload) {
+      // payload may include the final play session data or outcome; refresh to be safe
+      if (payload && payload.play_session) {
+        playSession.value = payload.play_session;
+      } else if (payload && payload.id) {
+        playSession.value = Object.assign({}, playSession.value, payload);
+      }
+
+      // ensure ticket/prize info is accurate after reveal
+      // attempt to re-fetch the ticket to get full prize details
+      load();
     }
 
-    async function newGame(){ window.location.reload(); }
+    function newGame() {
+      // simple behaviour: reload ticket data (server will create a new play session if appropriate)
+      load();
+    }
 
-    onMounted(() => { load(); });
-
-    return { ticket, playSession, onScratchProgress, onReveal, newGame, loading, error };
+    // expose to template
+    return { ticket, playSession, loading, error, onScratchProgress, onReveal, newGame };
   }
 }
 </script>
 
 <style scoped>
-.game-container{min-height:260px;padding:32px}
+.game-container{padding:32}
 .loading-plate{text-align:center}
 </style>

@@ -67,9 +67,9 @@
 
       <!-- Progress Section -->
       <div class="progress-section">
-        <div class="progress-label">PROGRESS: {{ Math.round(overallProgress) }}%</div>
+        <div class="progress-label">PROGRESS: {{ Math.round(displayedProgress) }}%</div>
         <div class="progress-track">
-          <div class="progress-fill" :style="{ width: overallProgress + '%' }"></div>
+          <div class="progress-fill" :style="{ width: displayedProgress + '%' }"></div>
         </div>
       </div>
 
@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import ScratchBox from './ScratchBox.vue';
 
 export default {
@@ -113,6 +113,8 @@ export default {
     const progressByBox = ref([0,0,0]);
     const revealedBoxes = ref([false,false,false]);
     const overallProgress = ref(0);
+    // displayedProgress is a smooth animated value that follows overallProgress
+    const displayedProgress = ref(0);
     const revealed = computed(() => !!(props.playSession?.revealed_at || props.playSession?.status === 'REVEALED'));
     const winningSymbol = ref('');
 
@@ -124,7 +126,7 @@ export default {
     }
 
     function setupFromSession(){
-      // Use actual symbols from the play session if available
+      // If server provided explicit box symbols, use them
       if (props.playSession?.box_symbols && Array.isArray(props.playSession.box_symbols) && props.playSession.box_symbols.length === 3) {
         symbols.value = [...props.playSession.box_symbols];
         winningSymbol.value = props.playSession.winning_symbol || '';
@@ -134,7 +136,18 @@ export default {
         return;
       }
       
-      // If no box_symbols yet, show placeholder amounts (this happens before server generates them)
+      // If this is a winning play session and we have a payout amount, show that amount in all three boxes
+      if (props.playSession?.outcome === 'WIN' && (props.playSession.payout_minor || props.playSession.payout_minor === 0)) {
+        const amt = prettyAmount(props.playSession.payout_minor);
+        symbols.value = [amt, amt, amt];
+        winningSymbol.value = amt;
+        initialScratch.value = [0,0,0];
+        progressByBox.value = [0,0,0];
+        revealedBoxes.value = [false,false,false];
+        return;
+      }
+ 
+      // If no box_symbols yet and not a known winning amount, show placeholder amounts (this happens before server generates them)
       const pool = ['£1','£5','£10','£20','£50','£100','£500'];
       
       // Don't show any specific pattern until we have the real amounts from the server
@@ -163,7 +176,34 @@ export default {
       emit('reveal', payload);
     }
 
-    return { symbols, initialScratch, revealedBoxes, overallProgress, onBoxProgress, onBoxRevealed, revealed, prettyAmount, winningSymbol };
+    // animate displayedProgress toward overallProgress for a nicer UX
+    let _raf = null;
+    function animateTo(target) {
+      if (_raf) { cancelAnimationFrame(_raf); _raf = null; }
+      const start = Number(displayedProgress.value || 0);
+      const duration = 380; // ms
+      const t0 = performance.now();
+      function step(now) {
+        const t = Math.min(1, (now - t0) / duration);
+        // ease out quadratic
+        const eased = 1 - Math.pow(1 - t, 2);
+        displayedProgress.value = start + (target - start) * eased;
+        if (t < 1) _raf = requestAnimationFrame(step); else _raf = null;
+      }
+      _raf = requestAnimationFrame(step);
+    }
+
+    watch(overallProgress, (v) => {
+      animateTo(Number(v || 0));
+    }, { immediate: true });
+
+    // clean up RAF when component unmounts
+    onBeforeUnmount(() => {
+      if (_raf) cancelAnimationFrame(_raf);
+    });
+
+    // return displayedProgress so template uses the animated value
+    return { symbols, initialScratch, revealedBoxes, overallProgress, displayedProgress, onBoxProgress, onBoxRevealed, revealed, prettyAmount, winningSymbol };
   }
 }
 </script>
